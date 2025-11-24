@@ -1,0 +1,5 @@
+{
+  "name": "Painel de Ocorrências Corporativo",
+  "description": "Dashboard interativo de Business Intelligence para gestão de incidentes e ocorrências, com importação de dados e análise via IA.",
+  "requestFramePermissions": []
+}

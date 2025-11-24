@@ -1,0 +1,79 @@
+import React from 'react';
+import { BrainCircuit, X, AlertCircle } from 'lucide-react';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
+
+interface AIInsightsPanelProps {
+  analysis: string | null;
+  isLoading: boolean;
+  error?: string | null;
+  onClose: () => void;
+}
+
+export const AIInsightsPanel: React.FC<AIInsightsPanelProps> = ({
+  analysis,
+  isLoading,
+  error,
+  onClose,
+}) => {
+  if (!analysis && !isLoading && !error) {
+    return null;
+  }
+
+  return (
+    <Card className="overflow-hidden border-indigo-100 shadow-lg shadow-indigo-100/50 animate-in slide-in-from-top-4 duration-300">
+      {/* Header with Gradient */}
+      <CardHeader className="bg-gradient-to-r from-indigo-600 to-blue-600 p-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-white">
+            <BrainCircuit className="text-indigo-200" size={24} />
+            <h3 className="font-bold text-lg">Análise Inteligente</h3>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            className="text-white/80 hover:text-white hover:bg-white/10"
+          >
+            <X size={20} />
+          </Button>
+        </div>
+      </CardHeader>
+
+      {/* Content */}
+      <CardContent className="p-6 bg-indigo-50/30">
+        {/* Loading State */}
+        {isLoading && (
+          <div className="space-y-3">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-5/6" />
+            <Skeleton className="h-4 w-4/6" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-3/4" />
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && !isLoading && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Erro ao gerar análise</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        {/* Analysis Content */}
+        {analysis && !isLoading && !error && (
+          <div className="prose prose-sm prose-indigo max-w-none">
+            <div className="text-slate-700 whitespace-pre-line leading-relaxed">
+              {analysis}
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
