@@ -14,7 +14,8 @@ const processDataForAI = (data: Incident[]) => {
 };
 
 export const analyzeIncidents = async (data: Incident[]): Promise<string> => {
-  const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY;
+  // Use the provided API key
+  const apiKey = "AIzaSyBfdTV13dMUmNbFSNSx6x7-3eSTIpN-Xis";
   
   if (!apiKey) {
     return "API Key não configurada. Por favor, configure a variável de ambiente GEMINI_API_KEY.";

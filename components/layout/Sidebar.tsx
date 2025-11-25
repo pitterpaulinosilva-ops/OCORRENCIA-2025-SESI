@@ -1,5 +1,13 @@
 import React from 'react';
-import { LayoutDashboard, FileSpreadsheet, BrainCircuit, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { 
+  BarChart3, 
+  FileText, 
+  Sparkles, 
+  ChevronLeft, 
+  ChevronRight, 
+  Loader2,
+  Activity
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
@@ -22,8 +30,8 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { icon: LayoutDashboard, label: 'Dashboard', active: true },
-  { icon: FileSpreadsheet, label: 'Relatórios' },
+  { icon: BarChart3, label: 'Dashboard', active: true },
+  { icon: FileText, label: 'Relatórios' },
 ];
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -44,23 +52,30 @@ export const Sidebar: React.FC<SidebarProps> = ({
         isCollapsed && !isMobile && "justify-center p-4"
       )}>
         {(!isCollapsed || isMobile) && (
-          <div className="flex items-center gap-2 font-bold text-xl tracking-tight">
-            <LayoutDashboard className="text-blue-500" size={24} />
-            <span>Painel Sesi</span>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg">
+              <Activity className="text-white" size={20} />
+            </div>
+            <div className="flex flex-col">
+              <span className="font-bold text-base tracking-tight">Painel Sesi</span>
+              <span className="text-xs text-slate-400">Gestão de Ocorrências</span>
+            </div>
           </div>
         )}
         {isCollapsed && !isMobile && (
-          <LayoutDashboard className="text-blue-500" size={24} />
+          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg">
+            <Activity className="text-white" size={20} />
+          </div>
         )}
         {!isMobile && (
           <Button
             variant="ghost"
             size="icon"
             onClick={onToggleCollapse}
-            className="text-white hover:bg-slate-800"
+            className="text-slate-400 hover:text-white hover:bg-slate-800 -mr-2"
             aria-label={isCollapsed ? "Expandir menu lateral" : "Recolher menu lateral"}
           >
-            {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+            {isCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
           </Button>
         )}
       </div>
@@ -91,44 +106,60 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* AI Analysis Card */}
       <div className={cn(
-        "p-6 bg-slate-950",
+        "p-6 bg-slate-950/50",
         isCollapsed && !isMobile && "p-4"
       )}>
-        <div className="bg-gradient-to-br from-blue-700 to-indigo-800 rounded-xl p-5 text-center shadow-lg">
-          <BrainCircuit className="mx-auto mb-3 text-white/90" size={isCollapsed && !isMobile ? 24 : 28} />
-          {(!isCollapsed || isMobile) && (
-            <>
-              <p className="text-xs text-blue-100 mb-4 font-medium leading-relaxed">
-                IA Analysis Engine<br />Ativado
-              </p>
+        <div className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 rounded-xl p-5 shadow-xl">
+          {/* Decorative elements */}
+          <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full blur-2xl" />
+          <div className="absolute bottom-0 left-0 w-16 h-16 bg-purple-500/20 rounded-full blur-xl" />
+          
+          <div className="relative">
+            <div className="flex items-center justify-center w-12 h-12 mx-auto mb-3 rounded-xl bg-white/20 backdrop-blur-sm">
+              <Sparkles className="text-white" size={isCollapsed && !isMobile ? 20 : 24} />
+            </div>
+            
+            {(!isCollapsed || isMobile) && (
+              <>
+                <h3 className="text-sm font-bold text-white mb-1 text-center">
+                  Análise com IA
+                </h3>
+                <p className="text-xs text-blue-100/80 mb-4 text-center leading-relaxed">
+                  Insights inteligentes sobre suas ocorrências
+                </p>
+                <Button
+                  onClick={onGenerateAnalysis}
+                  disabled={analyzing}
+                  className="w-full bg-white text-indigo-700 hover:bg-blue-50 font-semibold shadow-lg hover:shadow-xl transition-all"
+                  size="sm"
+                >
+                  {analyzing ? (
+                    <>
+                      <Loader2 className="animate-spin mr-2" size={16} />
+                      Gerando...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="mr-2" size={16} />
+                      Gerar Insights
+                    </>
+                  )}
+                </Button>
+              </>
+            )}
+            {isCollapsed && !isMobile && (
               <Button
                 onClick={onGenerateAnalysis}
                 disabled={analyzing}
-                className="w-full bg-white text-blue-900 hover:bg-blue-50 font-bold shadow-md"
-                size="sm"
+                variant="ghost"
+                size="icon"
+                className="w-full text-white hover:bg-white/20"
+                title="Gerar Insights com IA"
               >
-                {analyzing ? (
-                  <>
-                    <Loader2 className="animate-spin" size={16} />
-                    Gerando...
-                  </>
-                ) : (
-                  'Gerar Insights'
-                )}
+                {analyzing ? <Loader2 className="animate-spin" size={18} /> : <Sparkles size={18} />}
               </Button>
-            </>
-          )}
-          {isCollapsed && !isMobile && (
-            <Button
-              onClick={onGenerateAnalysis}
-              disabled={analyzing}
-              variant="ghost"
-              size="icon"
-              className="w-full text-white hover:bg-blue-600/20"
-            >
-              {analyzing ? <Loader2 className="animate-spin" size={16} /> : <BrainCircuit size={16} />}
-            </Button>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </div>
