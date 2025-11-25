@@ -29,14 +29,14 @@ export const AIInsightsPanel: React.FC<AIInsightsPanelProps> = ({
       <CardHeader className="bg-gradient-to-r from-indigo-600 to-blue-600 dark:from-indigo-700 dark:to-blue-700 p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-white">
-            <BrainCircuit className="text-indigo-200" size={24} />
+            <BrainCircuit size={24} />
             <h3 className="font-bold text-lg">Análise Inteligente</h3>
           </div>
           <Button
             variant="ghost"
             size="icon"
             onClick={onClose}
-            className="text-white/80 hover:text-white hover:bg-white/10"
+            className="text-white/90 hover:text-white hover:bg-white/20"
           >
             <X size={20} />
           </Button>
