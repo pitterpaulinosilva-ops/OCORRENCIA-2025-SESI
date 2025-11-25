@@ -40,7 +40,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     <div className="flex flex-col h-full">
       {/* Header */}
       <div className={cn(
-        "flex items-center justify-between p-6 border-b border-slate-800",
+        "flex items-center justify-between p-6 border-b border-slate-700/50",
         isCollapsed && !isMobile && "justify-center p-4"
       )}>
         {(!isCollapsed || isMobile) && (

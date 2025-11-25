@@ -6,6 +6,7 @@ import {
 import { Incident } from '../types';
 import { Calendar, AlertTriangle, Building2, FolderOpen, Users, Activity, RefreshCcw } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { useTheme } from '../hooks/use-theme';
 
 interface ChartsProps {
   data: Incident[];
@@ -46,15 +47,34 @@ const getStatusColor = (status: string): string => {
 
 const ChartHeader: React.FC<{ icon: React.ElementType, title: string, subtitle?: string }> = ({ icon: Icon, title, subtitle }) => (
   <div className="flex items-start gap-3">
-    <Icon className="text-slate-400 mt-0.5" size={20} />
+    <Icon className="text-muted-foreground mt-0.5" size={20} />
     <div>
-      <h3 className="text-slate-800 font-bold text-base leading-tight">{title}</h3>
-      {subtitle && <p className="text-slate-400 text-xs mt-1">{subtitle}</p>}
+      <h3 className="text-foreground font-bold text-base leading-tight">{title}</h3>
+      {subtitle && <p className="text-muted-foreground text-xs mt-1">{subtitle}</p>}
     </div>
   </div>
 );
 
+// Theme-aware chart colors
+const getChartColors = (isDark: boolean) => ({
+  grid: isDark ? '#334155' : '#e2e8f0',
+  axis: isDark ? '#94a3b8' : '#64748b',
+  tooltipBg: isDark ? '#1e293b' : '#ffffff',
+  tooltipBorder: isDark ? '#334155' : '#e2e8f0',
+  cursor: isDark ? '#1e293b' : '#f8fafc',
+});
+
 export const DashboardCharts: React.FC<ChartsProps> = ({ data }) => {
+  const { isDark } = useTheme();
+  const chartColors = getChartColors(isDark);
+
+  // Custom tooltip style
+  const tooltipStyle = {
+    backgroundColor: chartColors.tooltipBg,
+    border: `1px solid ${chartColors.tooltipBorder}`,
+    borderRadius: '8px',
+    boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)',
+  };
 
   // 1. Monthly Evolution (Stacked Bar: Concluido vs Em Andamento)
   const monthlyData = useMemo(() => {
@@ -250,17 +270,17 @@ export const DashboardCharts: React.FC<ChartsProps> = ({ data }) => {
         <div className="h-[400px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={monthlyData} barSize={40}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-              <XAxis dataKey="name" stroke="#64748b" tick={{fontSize: 12}} tickLine={false} axisLine={false} dy={10} />
-              <YAxis stroke="#64748b" tick={{fontSize: 12}} tickLine={false} axisLine={false} />
-              <Tooltip cursor={{fill: '#f8fafc'}} contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)'}} />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartColors.grid} />
+              <XAxis dataKey="name" stroke={chartColors.axis} tick={{fontSize: 12}} tickLine={false} axisLine={false} dy={10} />
+              <YAxis stroke={chartColors.axis} tick={{fontSize: 12}} tickLine={false} axisLine={false} />
+              <Tooltip cursor={{fill: chartColors.cursor}} contentStyle={tooltipStyle} />
               <Legend wrapperStyle={{paddingTop: '20px'}} iconType="circle" />
               <Bar dataKey="Concluído" stackId="a" fill={COLORS.success} radius={[0, 0, 0, 0]} />
               <Bar dataKey="Em Andamento" stackId="a" fill={COLORS.warning} radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
-        <p className="text-center text-xs text-slate-500 mt-2 italic">Pico de aberturas em Julho/2025 com 13 casos, dos quais 10 ainda em andamento</p>
+        <p className="text-center text-xs text-muted-foreground mt-2 italic">Pico de aberturas em Julho/2025 com 13 casos, dos quais 10 ainda em andamento</p>
         </CardContent>
       </Card>
 
@@ -273,10 +293,10 @@ export const DashboardCharts: React.FC<ChartsProps> = ({ data }) => {
         <div className="h-[400px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={omsTimeData} barSize={40}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-              <XAxis dataKey="name" stroke="#64748b" tick={{fontSize: 12}} tickLine={false} axisLine={false} dy={10} />
-              <YAxis stroke="#64748b" tick={{fontSize: 12}} tickLine={false} axisLine={false} />
-              <Tooltip cursor={{fill: '#f8fafc'}} />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartColors.grid} />
+              <XAxis dataKey="name" stroke={chartColors.axis} tick={{fontSize: 12}} tickLine={false} axisLine={false} dy={10} />
+              <YAxis stroke={chartColors.axis} tick={{fontSize: 12}} tickLine={false} axisLine={false} />
+              <Tooltip cursor={{fill: chartColors.cursor}} contentStyle={tooltipStyle} />
               <Legend wrapperStyle={{paddingTop: '20px'}} iconType="circle" />
               {omsKeys.map((key, idx) => (
                   <Bar key={key} dataKey={key} stackId="a" fill={omsColors[idx % omsColors.length]} radius={idx === omsKeys.length -1 ? [4,4,0,0] : [0,0,0,0]} />
@@ -284,7 +304,7 @@ export const DashboardCharts: React.FC<ChartsProps> = ({ data }) => {
             </BarChart>
           </ResponsiveContainer>
         </div>
-        <p className="text-center text-xs text-slate-400 mt-2 italic">* 96% dos casos não foram com a classificação OMS</p>
+        <p className="text-center text-xs text-muted-foreground mt-2 italic">* 96% dos casos não foram com a classificação OMS</p>
         </CardContent>
       </Card>
 
@@ -299,10 +319,10 @@ export const DashboardCharts: React.FC<ChartsProps> = ({ data }) => {
             <div className="h-[400px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={phaseData} layout="vertical" margin={{left: 40}}>
-                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
+                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke={chartColors.grid} />
                   <XAxis type="number" hide />
-                  <YAxis dataKey="name" type="category" stroke="#64748b" tick={{fontSize: 12}} width={100} tickLine={false} axisLine={false} />
-                  <Tooltip cursor={{fill: '#f8fafc'}} />
+                  <YAxis dataKey="name" type="category" stroke={chartColors.axis} tick={{fontSize: 12}} width={100} tickLine={false} axisLine={false} />
+                  <Tooltip cursor={{fill: chartColors.cursor}} contentStyle={tooltipStyle} />
                   <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={32}>
                     {phaseData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={
@@ -315,7 +335,7 @@ export const DashboardCharts: React.FC<ChartsProps> = ({ data }) => {
                 </BarChart>
               </ResponsiveContainer>
             </div>
-            <p className="text-center text-xs text-slate-500 mt-2 italic">70% das ocorrências em andamento estão na fase de Análise de Causa e Plano de Ação</p>
+            <p className="text-center text-xs text-muted-foreground mt-2 italic">70% das ocorrências em andamento estão na fase de Análise de Causa e Plano de Ação</p>
             </CardContent>
           </Card>
 
@@ -327,13 +347,13 @@ export const DashboardCharts: React.FC<ChartsProps> = ({ data }) => {
             <div className="h-[400px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={unitData} layout="vertical" margin={{left: 40}}>
-                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
-                  <XAxis type="number" stroke="#64748b" />
-                  <YAxis dataKey="name" type="category" stroke="#64748b" tick={{fontSize: 12}} width={120} tickLine={false} axisLine={false} />
-                  <Tooltip cursor={{fill: '#f8fafc'}} />
+                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke={chartColors.grid} />
+                  <XAxis type="number" stroke={chartColors.axis} />
+                  <YAxis dataKey="name" type="category" stroke={chartColors.axis} tick={{fontSize: 12}} width={120} tickLine={false} axisLine={false} />
+                  <Tooltip cursor={{fill: chartColors.cursor}} contentStyle={tooltipStyle} />
                   <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={32}>
                      {unitData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={index === 0 ? '#004080' : index === 1 ? '#1e5aa0' : '#3b7ec0'} opacity={1 - (index * 0.15)} />
+                        <Cell key={`cell-${index}`} fill={isDark ? (index === 0 ? '#3b82f6' : index === 1 ? '#60a5fa' : '#93c5fd') : (index === 0 ? '#004080' : index === 1 ? '#1e5aa0' : '#3b7ec0')} opacity={1 - (index * 0.15)} />
                      ))}
                   </Bar>
                 </BarChart>
@@ -353,10 +373,10 @@ export const DashboardCharts: React.FC<ChartsProps> = ({ data }) => {
         <div className="h-[350px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={typeData} layout="vertical" margin={{left: 40}}>
-               <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={true} stroke="#f1f5f9" />
-               <XAxis type="number" stroke="#64748b" />
-               <YAxis dataKey="name" type="category" stroke="#64748b" tick={{fontSize: 11}} width={120} tickLine={false} axisLine={false} />
-               <Tooltip />
+               <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={true} stroke={chartColors.grid} />
+               <XAxis type="number" stroke={chartColors.axis} />
+               <YAxis dataKey="name" type="category" stroke={chartColors.axis} tick={{fontSize: 11}} width={120} tickLine={false} axisLine={false} />
+               <Tooltip contentStyle={tooltipStyle} />
                <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={24}>
                   {typeData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={[COLORS.chart1, COLORS.chart4, '#9e2a2b', '#eaddcf', '#546e7a', '#d32f2f', '#c0ca33', '#795548', '#8d6e63'][index % 9]} />
@@ -377,10 +397,10 @@ export const DashboardCharts: React.FC<ChartsProps> = ({ data }) => {
         <div className="h-[400px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={severityData} layout="vertical" margin={{left: 40}}>
-              <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={true} stroke="#f1f5f9" />
-              <XAxis type="number" stroke="#64748b" />
-              <YAxis dataKey="name" type="category" stroke="#64748b" tick={{fontSize: 12}} width={120} tickLine={false} axisLine={false} />
-              <Tooltip />
+              <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={true} stroke={chartColors.grid} />
+              <XAxis type="number" stroke={chartColors.axis} />
+              <YAxis dataKey="name" type="category" stroke={chartColors.axis} tick={{fontSize: 12}} width={120} tickLine={false} axisLine={false} />
+              <Tooltip contentStyle={tooltipStyle} />
               <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={32}>
                 {severityData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={getSeverityColor(entry.name)} />
@@ -402,10 +422,10 @@ export const DashboardCharts: React.FC<ChartsProps> = ({ data }) => {
              <div className="h-[400px]">
                 <ResponsiveContainer width="100%" height="100%">
                    <BarChart data={responsibleData} layout="vertical" margin={{left: 20}}>
-                      <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
-                      <XAxis type="number" stroke="#64748b" />
-                      <YAxis dataKey="name" type="category" stroke="#64748b" tick={{fontSize: 11}} width={100} tickLine={false} axisLine={false} />
-                      <Tooltip cursor={{fill: '#f8fafc'}} />
+                      <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke={chartColors.grid} />
+                      <XAxis type="number" stroke={chartColors.axis} />
+                      <YAxis dataKey="name" type="category" stroke={chartColors.axis} tick={{fontSize: 11}} width={100} tickLine={false} axisLine={false} />
+                      <Tooltip cursor={{fill: chartColors.cursor}} contentStyle={tooltipStyle} />
                       <Legend wrapperStyle={{paddingTop: '10px'}} iconType="circle" />
                       <Bar dataKey="Concluídas" stackId="a" fill={COLORS.success} radius={[0, 0, 0, 0]} barSize={24} />
                       <Bar dataKey="Em Andamento" stackId="a" fill={COLORS.chart4} radius={[0, 4, 4, 0]} barSize={24} />
@@ -423,10 +443,10 @@ export const DashboardCharts: React.FC<ChartsProps> = ({ data }) => {
              <div className="h-[400px]">
                 <ResponsiveContainer width="100%" height="100%">
                    <BarChart data={processData} layout="vertical" margin={{left: 20}}>
-                      <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
-                      <XAxis type="number" stroke="#64748b" />
-                      <YAxis dataKey="name" type="category" stroke="#64748b" tick={{fontSize: 11}} width={130} tickLine={false} axisLine={false} />
-                      <Tooltip cursor={{fill: '#f8fafc'}} />
+                      <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke={chartColors.grid} />
+                      <XAxis type="number" stroke={chartColors.axis} />
+                      <YAxis dataKey="name" type="category" stroke={chartColors.axis} tick={{fontSize: 11}} width={130} tickLine={false} axisLine={false} />
+                      <Tooltip cursor={{fill: chartColors.cursor}} contentStyle={tooltipStyle} />
                       <Bar dataKey="value" fill="#ff6f00" radius={[0, 4, 4, 0]} barSize={32}>
                         {processData.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={index === 0 ? '#ff6f00' : '#ff9e40'} fillOpacity={1 - (index * 0.1)} />

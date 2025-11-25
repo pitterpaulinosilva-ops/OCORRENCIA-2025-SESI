@@ -14,12 +14,14 @@ const processDataForAI = (data: Incident[]) => {
 };
 
 export const analyzeIncidents = async (data: Incident[]): Promise<string> => {
-  if (!process.env.API_KEY) {
-    return "API Key não configurada. Por favor, configure a variável de ambiente API_KEY.";
+  const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY;
+  
+  if (!apiKey) {
+    return "API Key não configurada. Por favor, configure a variável de ambiente GEMINI_API_KEY.";
   }
 
   try {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const ai = new GoogleGenAI({ apiKey });
     const dataSummary = processDataForAI(data);
     
     const response = await ai.models.generateContent({

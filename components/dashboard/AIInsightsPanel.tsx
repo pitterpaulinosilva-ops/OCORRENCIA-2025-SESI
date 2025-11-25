@@ -24,9 +24,9 @@ export const AIInsightsPanel: React.FC<AIInsightsPanelProps> = ({
   }
 
   return (
-    <Card className="overflow-hidden border-indigo-100 shadow-lg shadow-indigo-100/50 animate-in slide-in-from-top-4 duration-300">
+    <Card className="overflow-hidden border-indigo-100 dark:border-indigo-900 shadow-lg shadow-indigo-100/50 dark:shadow-indigo-900/30 animate-in slide-in-from-top-4 duration-300">
       {/* Header with Gradient */}
-      <CardHeader className="bg-gradient-to-r from-indigo-600 to-blue-600 p-6">
+      <CardHeader className="bg-gradient-to-r from-indigo-600 to-blue-600 dark:from-indigo-700 dark:to-blue-700 p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-white">
             <BrainCircuit className="text-indigo-200" size={24} />
@@ -44,7 +44,7 @@ export const AIInsightsPanel: React.FC<AIInsightsPanelProps> = ({
       </CardHeader>
 
       {/* Content */}
-      <CardContent className="p-6 bg-indigo-50/30">
+      <CardContent className="p-6 bg-indigo-50/30 dark:bg-indigo-950/30">
         {/* Loading State */}
         {isLoading && (
           <div className="space-y-3">
@@ -67,8 +67,8 @@ export const AIInsightsPanel: React.FC<AIInsightsPanelProps> = ({
 
         {/* Analysis Content */}
         {analysis && !isLoading && !error && (
-          <div className="prose prose-sm prose-indigo max-w-none">
-            <div className="text-slate-700 whitespace-pre-line leading-relaxed">
+          <div className="prose prose-sm prose-indigo dark:prose-invert max-w-none">
+            <div className="text-foreground whitespace-pre-line leading-relaxed">
               {analysis}
             </div>
           </div>

@@ -18,24 +18,24 @@ interface KPICardProps {
 
 const colorClasses = {
   blue: {
-    border: 'border-t-[#004080]',
-    icon: 'text-blue-600 bg-blue-50',
-    text: 'text-blue-600',
+    border: 'border-t-primary',
+    icon: 'text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-950',
+    text: 'text-blue-600 dark:text-blue-400',
   },
   green: {
     border: 'border-t-green-500',
-    icon: 'text-green-600 bg-green-50',
-    text: 'text-green-600',
+    icon: 'text-green-600 bg-green-50 dark:text-green-400 dark:bg-green-950',
+    text: 'text-green-600 dark:text-green-400',
   },
   orange: {
     border: 'border-t-orange-500',
-    icon: 'text-orange-600 bg-orange-50',
-    text: 'text-orange-600',
+    icon: 'text-orange-600 bg-orange-50 dark:text-orange-400 dark:bg-orange-950',
+    text: 'text-orange-600 dark:text-orange-400',
   },
   red: {
     border: 'border-t-red-500',
-    icon: 'text-red-600 bg-red-50',
-    text: 'text-red-600',
+    icon: 'text-red-600 bg-red-50 dark:text-red-400 dark:bg-red-950',
+    text: 'text-red-600 dark:text-red-400',
   },
 };
 
@@ -74,13 +74,13 @@ export const KPICard: React.FC<KPICardProps> = ({
 
         {/* Value */}
         <div className="mb-2">
-          <div className="text-4xl font-black text-slate-900">
+          <div className="text-4xl font-black text-foreground">
             {formatNumber(value)}
           </div>
         </div>
 
         {/* Title */}
-        <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
+        <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">
           {title}
         </div>
 
@@ -88,7 +88,7 @@ export const KPICard: React.FC<KPICardProps> = ({
         {trend && (
           <div className={cn(
             "flex items-center gap-1 text-sm font-medium",
-            trend.isPositive ? "text-green-600" : "text-red-600"
+            trend.isPositive ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
           )}>
             {trend.isPositive ? (
               <TrendingUp size={16} />
@@ -102,11 +102,11 @@ export const KPICard: React.FC<KPICardProps> = ({
         {/* Progress Bar */}
         {showProgress && (
           <div className="mt-4">
-            <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+            <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
               <div
                 className={cn(
                   "h-full rounded-full transition-all duration-500",
-                  color === 'blue' && "bg-[#004080]",
+                  color === 'blue' && "bg-primary",
                   color === 'green' && "bg-green-500",
                   color === 'orange' && "bg-orange-500",
                   color === 'red' && "bg-red-500"

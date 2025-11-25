@@ -1,6 +1,7 @@
 import React from 'react';
 import { Menu, Upload, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ThemeToggle } from './ThemeToggle';
 import { cn } from '@/lib/utils';
 
 interface HeaderProps {
@@ -26,7 +27,7 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <header className={cn(
-      "sticky top-0 z-30 bg-white border-b border-slate-200 shadow-sm transition-all duration-300",
+      "sticky top-0 z-30 bg-background border-b border-border shadow-sm transition-all duration-300",
       "h-16 flex items-center justify-between",
       isMobile ? "px-4" : "px-6 md:px-8"
     )}>
@@ -36,14 +37,14 @@ export const Header: React.FC<HeaderProps> = ({
             variant="ghost"
             size="icon"
             onClick={onMenuClick}
-            className="text-slate-500 hover:text-slate-900"
+            className="text-muted-foreground hover:text-foreground"
             aria-label="Abrir menu de navegação"
           >
             <Menu size={20} />
           </Button>
         )}
         <h1 className={cn(
-          "font-bold text-slate-800 tracking-tight",
+          "font-bold text-foreground tracking-tight",
           isMobile ? "text-sm" : "text-lg"
         )}>
           {isMobile ? "Ocorrências NSP" : "Gestão de Ocorrências do NSP"}
@@ -59,21 +60,23 @@ export const Header: React.FC<HeaderProps> = ({
           className="hidden"
         />
         
+        <ThemeToggle />
+        
         <Button
           variant="outline"
           size={isMobile ? "icon" : "default"}
           onClick={handleUploadClick}
-          className="border-slate-200 hover:bg-slate-100"
+          className="border-border hover:bg-accent"
           aria-label="Importar arquivo CSV ou Excel"
         >
-          <Upload size={16} className="text-blue-600" />
+          <Upload size={16} className="text-primary" />
           {!isMobile && <span className="ml-2">Importar CSV/Excel</span>}
         </Button>
 
         <Button
           size={isMobile ? "icon" : "default"}
           onClick={onExport}
-          className="bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-200"
+          className="bg-primary hover:bg-primary/90 shadow-md"
           aria-label="Exportar dados para CSV"
         >
           <Download size={16} />
