@@ -27,10 +27,10 @@ export const AIInsightsPanel: React.FC<AIInsightsPanelProps> = ({
     <Card className="overflow-hidden border-indigo-100 dark:border-indigo-900 shadow-lg shadow-indigo-100/50 dark:shadow-indigo-900/30 animate-in slide-in-from-top-4 duration-300">
       {/* Header with Gradient */}
       <CardHeader className="bg-gradient-to-r from-indigo-600 to-blue-600 dark:from-indigo-700 dark:to-blue-700 p-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-white">
-            <BrainCircuit size={24} />
-            <h3 className="font-bold text-lg">Análise Inteligente</h3>
+        <div className="flex items-center justify-between text-white">
+          <div className="flex items-center gap-2">
+            <BrainCircuit size={24} className="text-white" />
+            <h3 className="font-bold text-lg text-white">Análise Inteligente</h3>
           </div>
           <Button
             variant="ghost"
