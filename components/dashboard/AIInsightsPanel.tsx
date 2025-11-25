@@ -24,19 +24,21 @@ export const AIInsightsPanel: React.FC<AIInsightsPanelProps> = ({
   }
 
   return (
-    <Card className="overflow-hidden border-indigo-100 dark:border-indigo-900 shadow-lg shadow-indigo-100/50 dark:shadow-indigo-900/30 animate-in slide-in-from-top-4 duration-300">
-      {/* Header with Gradient */}
-      <CardHeader className="bg-gradient-to-r from-indigo-600 to-blue-600 dark:from-indigo-700 dark:to-blue-700 p-6">
+    <Card className="overflow-hidden border-border shadow-lg animate-in slide-in-from-top-4 duration-300">
+      {/* Header */}
+      <CardHeader className="bg-muted/50 border-b border-border p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <BrainCircuit size={24} className="text-white" />
-            <h3 className="font-bold text-lg !text-white">Análise Inteligente</h3>
+            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-blue-600">
+              <BrainCircuit size={20} className="text-white" />
+            </div>
+            <h3 className="font-bold text-lg text-foreground">Análise Inteligente</h3>
           </div>
           <Button
             variant="ghost"
             size="icon"
             onClick={onClose}
-            className="!text-white/90 hover:!text-white hover:bg-white/20"
+            className="text-muted-foreground hover:text-foreground"
           >
             <X size={20} />
           </Button>
@@ -44,7 +46,7 @@ export const AIInsightsPanel: React.FC<AIInsightsPanelProps> = ({
       </CardHeader>
 
       {/* Content */}
-      <CardContent className="p-6 bg-indigo-50/30 dark:bg-indigo-950/30">
+      <CardContent className="p-6">
         {/* Loading State */}
         {isLoading && (
           <div className="space-y-3">
