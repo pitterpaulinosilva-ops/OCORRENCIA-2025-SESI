@@ -11,6 +11,7 @@ import { AIInsightsPanel } from './components/dashboard/AIInsightsPanel';
 import { Toaster } from './components/ui/toaster';
 import { useToast } from './hooks/use-toast';
 import { useMobile } from './hooks/use-mobile';
+import { useTheme } from './hooks/use-theme';
 import * as XLSX from 'xlsx';
 
 const App: React.FC = () => {
@@ -21,6 +22,9 @@ const App: React.FC = () => {
   const [aiError, setAiError] = useState<string | null>(null);
   const { toast } = useToast();
   const { isMobile } = useMobile();
+  
+  // Initialize theme hook to apply theme on mount
+  useTheme();
 
   // Filter States
   const [filters, setFilters] = useState({
