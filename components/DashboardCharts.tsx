@@ -29,12 +29,16 @@ const COLORS = {
 // Semantic Severity Color Mapper
 const getSeverityColor = (name: string): string => {
   const s = name.toLowerCase();
-  if (s.includes('nenhum dano')) return COLORS.success;
-  if (s.includes('near miss')) return COLORS.info;
-  if (s.includes('circunst') || s.includes('risco')) return '#EAB308'; // Stronger Yellow
-  if (s.includes('leve')) return COLORS.chart4; // Orange
-  if (s.includes('moderado')) return COLORS.danger;
-  if (s.includes('grave')) return '#991B1B'; // Dark Red
+  if (s.includes('massivo')) return '#7c2d12'; // Brown-Red (Most severe)
+  if (s.includes('severo')) return '#991B1B'; // Dark Red
+  if (s.includes('moderado')) return COLORS.danger; // Red
+  if (s.includes('dano leve')) return COLORS.chart4; // Orange
+  if (s.includes('leve') && !s.includes('dano')) return '#fb923c'; // Light Orange
+  if (s.includes('sem dano') || s.includes('nenhum dano')) return COLORS.success; // Green
+  if (s.includes('near miss')) return COLORS.info; // Blue
+  if (s.includes('circunstância') || s.includes('risco')) return '#EAB308'; // Yellow
+  if (s.includes('não classificado') || s.includes('nao classif')) return COLORS.secondary; // Gray
+  if (s.includes('não procede')) return '#a1a1aa'; // Zinc
   return COLORS.secondary;
 };
 
@@ -79,26 +83,26 @@ export const DashboardCharts: React.FC<ChartsProps> = ({ data }) => {
   // 1. Monthly Evolution (Stacked Bar: Concluido vs Em Andamento)
   const monthlyData = useMemo(() => {
     const agg: Record<string, { name: string, Concluído: number, 'Em Andamento': number, sortKey: string }> = {};
-    
+
     data.forEach(d => {
       // Garantir que a data está no formato correto
       const dateParts = d.date.split('-'); // YYYY-MM-DD
       if (dateParts.length !== 3) return;
-      
+
       const year = dateParts[0];
       const month = dateParts[1];
       const sortKey = `${year}-${month}`;
-      
+
       // Criar nome do mês em português
       const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
       const monthIndex = parseInt(month) - 1;
       const yearShort = year.substring(2);
       const displayName = `${monthNames[monthIndex]}. de ${yearShort}`;
-      
+
       if (!agg[sortKey]) {
-        agg[sortKey] = { 
-          name: displayName, 
-          Concluído: 0, 
+        agg[sortKey] = {
+          name: displayName,
+          Concluído: 0,
           'Em Andamento': 0,
           sortKey: sortKey
         };
@@ -122,7 +126,7 @@ export const DashboardCharts: React.FC<ChartsProps> = ({ data }) => {
   const omsData = useMemo(() => {
     const agg: Record<string, number> = {};
     data.forEach(d => agg[d.oms] = (agg[d.oms] || 0) + 1);
-    
+
     // Defined colors for specific OMS categories if needed
     const omsColors: Record<string, string> = {
       'Não Classificado': '#94a3b8',
@@ -133,53 +137,72 @@ export const DashboardCharts: React.FC<ChartsProps> = ({ data }) => {
 
     return Object.entries(agg)
       .sort((a, b) => new Date(a[0]) > new Date(b[0]) ? 1 : -1) // Assuming time sort isn't applicable, sort by name? Or usually date for OMS trends. Let's stick to simple mapping if it was time based. 
-      // Actually, typically OMS is categorical. Let's group by Month AND OMS for the chart shown in image 2 (looks like a time series with multiple bars per month)
-      // Let's re-do OMS to be Monthly Grouped Bar
-      return [];
+    // Actually, typically OMS is categorical. Let's group by Month AND OMS for the chart shown in image 2 (looks like a time series with multiple bars per month)
+    // Let's re-do OMS to be Monthly Grouped Bar
+    return [];
   }, [data]);
 
   const omsTimeData = useMemo(() => {
-     const agg: Record<string, any> = {};
+    const agg: Record<string, any> = {};
 
-     data.forEach(d => {
-        // Garantir que a data está no formato correto
-        const dateParts = d.date.split('-'); // YYYY-MM-DD
-        if (dateParts.length !== 3) return;
-        
-        const year = dateParts[0];
-        const month = dateParts[1];
-        const sortKey = `${year}-${month}`;
-        
-        // Criar nome do mês em português
-        const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-        const monthIndex = parseInt(month) - 1;
-        const yearShort = year.substring(2);
-        const displayName = `${monthNames[monthIndex]}. de ${yearShort}`;
+    data.forEach(d => {
+      // Garantir que a data está no formato correto
+      const dateParts = d.date.split('-'); // YYYY-MM-DD
+      if (dateParts.length !== 3) return;
 
-        if (!agg[sortKey]) agg[sortKey] = { name: displayName };
+      const year = dateParts[0];
+      const month = dateParts[1];
+      const sortKey = `${year}-${month}`;
 
-        agg[sortKey][d.oms] = (agg[sortKey][d.oms] || 0) + 1;
-     });
+      // Criar nome do mês em português
+      const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+      const monthIndex = parseInt(month) - 1;
+      const yearShort = year.substring(2);
+      const displayName = `${monthNames[monthIndex]}. de ${yearShort}`;
 
-     return Object.keys(agg).sort().map(k => agg[k]);
+      if (!agg[sortKey]) agg[sortKey] = { name: displayName };
+
+      agg[sortKey][d.oms] = (agg[sortKey][d.oms] || 0) + 1;
+    });
+
+    return Object.keys(agg).sort().map(k => agg[k]);
   }, [data]);
-  
-  const omsKeys = ['Não Classificado', 'Administração clínica', 'Documentação', 'Dispositivo/equipamento médico'];
-  const omsColors = ['#94a3b8', '#003f88', '#ff6600', '#e60000', '#10b981'];
+
+  // Unique OMS keys from data
+  const omsKeysFromData = useMemo(() => {
+    const keys = new Set<string>();
+    data.forEach(d => keys.add(d.oms));
+    return Array.from(keys);
+  }, [data]);
+
+  const omsColorMap: Record<string, string> = {
+    'Não Classificado': '#94a3b8',
+    'Incidente com Dano Leve': '#f97316',
+    'Incidente sem Dano': '#10b981',
+    'Near Miss': '#3b82f6',
+    'Circunstância de Risco': '#EAB308',
+    'Incidente': '#8b5cf6',
+    'Queda': '#ef4444',
+    'Identificação Errada': '#06b6d4',
+    'Medicamento': '#ec4899',
+    'Documentação': '#ff6600',
+    'Administração': '#003f88',
+  };
+  const omsColors = omsKeysFromData.map(k => omsColorMap[k] || '#64748b');
 
 
   // 3. Phase (Horizontal Bar)
   const phaseData = useMemo(() => {
     const agg: Record<string, number> = {};
     data.forEach(d => {
-        // Normalize phase names
-        let p = d.phase;
-        if (p === 'Concluída') p = 'Concluída';
-        else if (p.includes('Analisar Causa')) p = 'Analisar Causa';
-        else if (p.includes('Gerenciar Plano')) p = 'Gerenciar Plano';
-        else if (p.includes('Avaliar')) p = 'Avaliar Ocorrência';
-        else if (p.includes('Ação Imediata')) p = 'Ação Imediata';
-        agg[p] = (agg[p] || 0) + 1;
+      // Normalize phase names
+      let p = d.phase;
+      if (p === 'Concluída') p = 'Concluída';
+      else if (p.includes('Analisar Causa')) p = 'Analisar Causa';
+      else if (p.includes('Gerenciar Plano')) p = 'Gerenciar Plano';
+      else if (p.includes('Avaliar')) p = 'Avaliar Ocorrência';
+      else if (p.includes('Ação Imediata')) p = 'Ação Imediata';
+      agg[p] = (agg[p] || 0) + 1;
     });
     return Object.entries(agg)
       .map(([name, value]) => ({ name, value }))
@@ -190,8 +213,8 @@ export const DashboardCharts: React.FC<ChartsProps> = ({ data }) => {
   const unitData = useMemo(() => {
     const agg: Record<string, number> = {};
     data.forEach(d => {
-        let u = d.unit.replace('Unidade ', '').replace('Sesi ', '');
-        agg[u] = (agg[u] || 0) + 1;
+      let u = d.unit.replace('Unidade ', '').replace('Sesi ', '');
+      agg[u] = (agg[u] || 0) + 1;
     });
     return Object.entries(agg)
       .map(([name, value]) => ({ name, value }))
@@ -202,14 +225,14 @@ export const DashboardCharts: React.FC<ChartsProps> = ({ data }) => {
   const typeData = useMemo(() => {
     const agg: Record<string, number> = {};
     data.forEach(d => {
-        let t = d.type;
-        if (t.includes('Incidente/evento')) t = 'Incidente/evento';
-        if (t.includes('Identificação Errada')) t = 'Ident. Errada';
-        if (t.includes('Retificação')) t = 'Retif./troca laudos';
-        if (t.includes('Atraso')) t = 'Atraso laudos';
-        if (t.includes('Recoleta')) t = 'Recoleta exames';
-        if (t.includes('Divergência')) t = 'Divergência dados';
-        agg[t] = (agg[t] || 0) + 1;
+      let t = d.type;
+      if (t.includes('Incidente/evento')) t = 'Incidente/evento';
+      if (t.includes('Identificação Errada')) t = 'Ident. Errada';
+      if (t.includes('Retificação')) t = 'Retif./troca laudos';
+      if (t.includes('Atraso')) t = 'Atraso laudos';
+      if (t.includes('Recoleta')) t = 'Recoleta exames';
+      if (t.includes('Divergência')) t = 'Divergência dados';
+      agg[t] = (agg[t] || 0) + 1;
     });
     return Object.entries(agg)
       .map(([name, value]) => ({ name, value }))
@@ -220,9 +243,9 @@ export const DashboardCharts: React.FC<ChartsProps> = ({ data }) => {
   const severityData = useMemo(() => {
     const agg: Record<string, number> = {};
     data.forEach(d => {
-        let s = d.severity.replace('Evento com ', '').replace(' (Saúde)', '');
-        if (s === 'Leve') s = 'Leve'; // Keep as is
-        agg[s] = (agg[s] || 0) + 1;
+      let s = d.severity.replace('Evento com ', '').replace(' (Saúde)', '');
+      if (s === 'Leve') s = 'Leve'; // Keep as is
+      agg[s] = (agg[s] || 0) + 1;
     });
     return Object.entries(agg)
       .map(([name, value]) => ({ name, value }))
@@ -233,54 +256,57 @@ export const DashboardCharts: React.FC<ChartsProps> = ({ data }) => {
   const responsibleData = useMemo(() => {
     const agg: Record<string, { name: string, Concluídas: number, 'Em Andamento': number, total: number }> = {};
     data.forEach(d => {
-        const r = d.responsible.split('.')[0] + '.' + (d.responsible.split('.')[1] || '');
-        if (!agg[r]) agg[r] = { name: r, Concluídas: 0, 'Em Andamento': 0, total: 0 };
-        
-        if (d.status === 'Concluído') agg[r].Concluídas++;
-        else agg[r]['Em Andamento']++;
-        agg[r].total++;
+      const r = d.responsible.split('.')[0] + '.' + (d.responsible.split('.')[1] || '');
+      if (!agg[r]) agg[r] = { name: r, Concluídas: 0, 'Em Andamento': 0, total: 0 };
+
+      if (d.status === 'Concluído') agg[r].Concluídas++;
+      else agg[r]['Em Andamento']++;
+      agg[r].total++;
     });
     return Object.values(agg).sort((a, b) => b.total - a.total).slice(0, 10);
   }, [data]);
 
-  // 8. Process (Horizontal Bar)
+  // 8. Process/Origem (Horizontal Bar)
   const processData = useMemo(() => {
     const agg: Record<string, number> = {};
     data.forEach(d => {
-        let p = d.process;
-        if (p.includes('Administrar Consultas')) p = 'Admin. Consultas/Exames';
-        else if (p.includes('Administrar Acesso')) p = 'Admin. Acesso Paciente';
-        else if (p.includes('Gerenciar Serviços')) p = 'Gerenciar Serv. Saúde';
-        agg[p] = (agg[p] || 0) + 1;
+      // d.process agora contém a Origem (Monitoramento, Notif. Clínicas, etc.)
+      let p = d.process;
+      if (p.includes('Notif.')) p = 'Notif. Clínicas';
+      else if (p.includes('Auditoria')) p = 'Auditoria Int.';
+      else if (p.includes('SAC') || p.includes('Ouvidoria')) p = 'SAC/Ouvidoria';
+      else if (p.includes('Feedback')) p = 'Feedback Clientes';
+      else if (p.includes('Pesquisa')) p = 'Pesquisa Sat.';
+      agg[p] = (agg[p] || 0) + 1;
     });
     return Object.entries(agg)
       .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value); // Fixed: sorted descending by value
+      .sort((a, b) => b.value - a.value);
   }, [data]);
 
   return (
     <div className="space-y-6">
-      
+
       {/* Row 1: Monthly Evolution */}
       <Card>
         <CardHeader>
           <ChartHeader icon={Calendar} title="Abertura de Ocorrências por Mês" />
         </CardHeader>
         <CardContent>
-        <div className="h-[400px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={monthlyData} barSize={40}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartColors.grid} />
-              <XAxis dataKey="name" stroke={chartColors.axis} tick={{fontSize: 12}} tickLine={false} axisLine={false} dy={10} />
-              <YAxis stroke={chartColors.axis} tick={{fontSize: 12}} tickLine={false} axisLine={false} />
-              <Tooltip cursor={{fill: chartColors.cursor}} contentStyle={tooltipStyle} />
-              <Legend wrapperStyle={{paddingTop: '20px'}} iconType="circle" />
-              <Bar dataKey="Concluído" stackId="a" fill={COLORS.success} radius={[0, 0, 0, 0]} />
-              <Bar dataKey="Em Andamento" stackId="a" fill={COLORS.warning} radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-        <p className="text-center text-xs text-muted-foreground mt-2 italic">Pico de aberturas em Julho/2025 com 13 casos, dos quais 10 ainda em andamento</p>
+          <div className="h-[400px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={monthlyData} barSize={40}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartColors.grid} />
+                <XAxis dataKey="name" stroke={chartColors.axis} tick={{ fontSize: 12 }} tickLine={false} axisLine={false} dy={10} />
+                <YAxis stroke={chartColors.axis} tick={{ fontSize: 12 }} tickLine={false} axisLine={false} />
+                <Tooltip cursor={{ fill: chartColors.cursor }} contentStyle={tooltipStyle} />
+                <Legend wrapperStyle={{ paddingTop: '20px' }} iconType="circle" />
+                <Bar dataKey="Concluído" stackId="a" fill={COLORS.success} radius={[0, 0, 0, 0]} />
+                <Bar dataKey="Em Andamento" stackId="a" fill={COLORS.warning} radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <p className="text-center text-xs text-muted-foreground mt-2 italic">Histórico de ocorrências de Nov/2022 a Dez/2025</p>
         </CardContent>
       </Card>
 
@@ -290,77 +316,77 @@ export const DashboardCharts: React.FC<ChartsProps> = ({ data }) => {
           <ChartHeader icon={FolderOpen} title="Tipo de Incidente - OMS por Mês" />
         </CardHeader>
         <CardContent>
-        <div className="h-[400px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={omsTimeData} barSize={40}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartColors.grid} />
-              <XAxis dataKey="name" stroke={chartColors.axis} tick={{fontSize: 12}} tickLine={false} axisLine={false} dy={10} />
-              <YAxis stroke={chartColors.axis} tick={{fontSize: 12}} tickLine={false} axisLine={false} />
-              <Tooltip cursor={{fill: chartColors.cursor}} contentStyle={tooltipStyle} />
-              <Legend wrapperStyle={{paddingTop: '20px'}} iconType="circle" />
-              {omsKeys.map((key, idx) => (
-                  <Bar key={key} dataKey={key} stackId="a" fill={omsColors[idx % omsColors.length]} radius={idx === omsKeys.length -1 ? [4,4,0,0] : [0,0,0,0]} />
-              ))}
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-        <p className="text-center text-xs text-muted-foreground mt-2 italic">* 96% dos casos não foram com a classificação OMS</p>
+          <div className="h-[400px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={omsTimeData} barSize={40}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartColors.grid} />
+                <XAxis dataKey="name" stroke={chartColors.axis} tick={{ fontSize: 12 }} tickLine={false} axisLine={false} dy={10} />
+                <YAxis stroke={chartColors.axis} tick={{ fontSize: 12 }} tickLine={false} axisLine={false} />
+                <Tooltip cursor={{ fill: chartColors.cursor }} contentStyle={tooltipStyle} />
+                <Legend wrapperStyle={{ paddingTop: '20px' }} iconType="circle" />
+                {omsKeysFromData.map((key, idx) => (
+                  <Bar key={key} dataKey={key} stackId="a" fill={omsColors[idx]} radius={idx === omsKeysFromData.length - 1 ? [4, 4, 0, 0] : [0, 0, 0, 0]} />
+                ))}
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <p className="text-center text-xs text-muted-foreground mt-2 italic">Classificação dos incidentes conforme padrão OMS</p>
         </CardContent>
       </Card>
 
       {/* Row 3: Phase & Units */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          
-          <Card>
-            <CardHeader>
-              <ChartHeader icon={RefreshCcw} title="Fase da Ocorrência" />
-            </CardHeader>
-            <CardContent>
+
+        <Card>
+          <CardHeader>
+            <ChartHeader icon={RefreshCcw} title="Fase da Ocorrência" />
+          </CardHeader>
+          <CardContent>
             <div className="h-[400px]">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={phaseData} layout="vertical" margin={{left: 40}}>
+                <BarChart data={phaseData} layout="vertical" margin={{ left: 40 }}>
                   <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke={chartColors.grid} />
                   <XAxis type="number" hide />
-                  <YAxis dataKey="name" type="category" stroke={chartColors.axis} tick={{fontSize: 12}} width={100} tickLine={false} axisLine={false} />
-                  <Tooltip cursor={{fill: chartColors.cursor}} contentStyle={tooltipStyle} />
+                  <YAxis dataKey="name" type="category" stroke={chartColors.axis} tick={{ fontSize: 12 }} width={100} tickLine={false} axisLine={false} />
+                  <Tooltip cursor={{ fill: chartColors.cursor }} contentStyle={tooltipStyle} />
                   <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={32}>
                     {phaseData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={
-                            entry.name === 'Concluída' ? COLORS.success :
-                            entry.name === 'Analisar Causa' ? COLORS.info :
+                      <Cell key={`cell-${index}`} fill={
+                        entry.name === 'Concluída' ? COLORS.success :
+                          entry.name === 'Analisar Causa' ? COLORS.info :
                             entry.name === 'Ação Imediata' ? COLORS.warning : COLORS.chart3
-                        } />
+                      } />
                     ))}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>
-            <p className="text-center text-xs text-muted-foreground mt-2 italic">70% das ocorrências em andamento estão na fase de Análise de Causa e Plano de Ação</p>
-            </CardContent>
-          </Card>
+            <p className="text-center text-xs text-muted-foreground mt-2 italic">Acompanhamento do fluxo de tratamento das ocorrências</p>
+          </CardContent>
+        </Card>
 
-          <Card>
-            <CardHeader>
-              <ChartHeader icon={Building2} title="Unidades Notificadas" subtitle="Onde ocorreram as ocorrências" />
-            </CardHeader>
-            <CardContent>
+        <Card>
+          <CardHeader>
+            <ChartHeader icon={Building2} title="Unidades Notificadas" subtitle="Onde ocorreram as ocorrências" />
+          </CardHeader>
+          <CardContent>
             <div className="h-[400px]">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={unitData} layout="vertical" margin={{left: 40}}>
+                <BarChart data={unitData} layout="vertical" margin={{ left: 40 }}>
                   <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke={chartColors.grid} />
                   <XAxis type="number" stroke={chartColors.axis} />
-                  <YAxis dataKey="name" type="category" stroke={chartColors.axis} tick={{fontSize: 12}} width={120} tickLine={false} axisLine={false} />
-                  <Tooltip cursor={{fill: chartColors.cursor}} contentStyle={tooltipStyle} />
+                  <YAxis dataKey="name" type="category" stroke={chartColors.axis} tick={{ fontSize: 12 }} width={120} tickLine={false} axisLine={false} />
+                  <Tooltip cursor={{ fill: chartColors.cursor }} contentStyle={tooltipStyle} />
                   <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={32}>
-                     {unitData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={isDark ? (index === 0 ? '#3b82f6' : index === 1 ? '#60a5fa' : '#93c5fd') : (index === 0 ? '#004080' : index === 1 ? '#1e5aa0' : '#3b7ec0')} opacity={1 - (index * 0.15)} />
-                     ))}
+                    {unitData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={isDark ? (index === 0 ? '#3b82f6' : index === 1 ? '#60a5fa' : '#93c5fd') : (index === 0 ? '#004080' : index === 1 ? '#1e5aa0' : '#3b7ec0')} opacity={1 - (index * 0.15)} />
+                    ))}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>
-            </CardContent>
-          </Card>
+          </CardContent>
+        </Card>
 
       </div>
 
@@ -370,21 +396,21 @@ export const DashboardCharts: React.FC<ChartsProps> = ({ data }) => {
           <ChartHeader icon={FolderOpen} title="Tipos de Ocorrência" />
         </CardHeader>
         <CardContent>
-        <div className="h-[350px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={typeData} layout="vertical" margin={{left: 40}}>
-               <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={true} stroke={chartColors.grid} />
-               <XAxis type="number" stroke={chartColors.axis} />
-               <YAxis dataKey="name" type="category" stroke={chartColors.axis} tick={{fontSize: 11}} width={120} tickLine={false} axisLine={false} />
-               <Tooltip contentStyle={tooltipStyle} />
-               <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={24}>
+          <div className="h-[350px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={typeData} layout="vertical" margin={{ left: 40 }}>
+                <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={true} stroke={chartColors.grid} />
+                <XAxis type="number" stroke={chartColors.axis} />
+                <YAxis dataKey="name" type="category" stroke={chartColors.axis} tick={{ fontSize: 11 }} width={120} tickLine={false} axisLine={false} />
+                <Tooltip contentStyle={tooltipStyle} />
+                <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={24}>
                   {typeData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={[COLORS.chart1, COLORS.chart4, '#9e2a2b', '#eaddcf', '#546e7a', '#d32f2f', '#c0ca33', '#795548', '#8d6e63'][index % 9]} />
+                    <Cell key={`cell-${index}`} fill={[COLORS.chart1, COLORS.chart4, '#9e2a2b', '#eaddcf', '#546e7a', '#d32f2f', '#c0ca33', '#795548', '#8d6e63'][index % 9]} />
                   ))}
-               </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </CardContent>
       </Card>
 
@@ -394,69 +420,69 @@ export const DashboardCharts: React.FC<ChartsProps> = ({ data }) => {
           <ChartHeader icon={AlertTriangle} title="Severidade/Gravidade" />
         </CardHeader>
         <CardContent>
-        <div className="h-[400px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={severityData} layout="vertical" margin={{left: 40}}>
-              <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={true} stroke={chartColors.grid} />
-              <XAxis type="number" stroke={chartColors.axis} />
-              <YAxis dataKey="name" type="category" stroke={chartColors.axis} tick={{fontSize: 12}} width={120} tickLine={false} axisLine={false} />
-              <Tooltip contentStyle={tooltipStyle} />
-              <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={32}>
-                {severityData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={getSeverityColor(entry.name)} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
+          <div className="h-[400px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={severityData} layout="vertical" margin={{ left: 40 }}>
+                <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={true} stroke={chartColors.grid} />
+                <XAxis type="number" stroke={chartColors.axis} />
+                <YAxis dataKey="name" type="category" stroke={chartColors.axis} tick={{ fontSize: 12 }} width={120} tickLine={false} axisLine={false} />
+                <Tooltip contentStyle={tooltipStyle} />
+                <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={32}>
+                  {severityData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={getSeverityColor(entry.name)} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </CardContent>
       </Card>
 
       {/* Row 6: Responsible & Process */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card>
-             <CardHeader>
-               <ChartHeader icon={Users} title="Top Responsáveis" />
-             </CardHeader>
-             <CardContent>
-             <div className="h-[400px]">
-                <ResponsiveContainer width="100%" height="100%">
-                   <BarChart data={responsibleData} layout="vertical" margin={{left: 20}}>
-                      <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke={chartColors.grid} />
-                      <XAxis type="number" stroke={chartColors.axis} />
-                      <YAxis dataKey="name" type="category" stroke={chartColors.axis} tick={{fontSize: 11}} width={100} tickLine={false} axisLine={false} />
-                      <Tooltip cursor={{fill: chartColors.cursor}} contentStyle={tooltipStyle} />
-                      <Legend wrapperStyle={{paddingTop: '10px'}} iconType="circle" />
-                      <Bar dataKey="Concluídas" stackId="a" fill={COLORS.success} radius={[0, 0, 0, 0]} barSize={24} />
-                      <Bar dataKey="Em Andamento" stackId="a" fill={COLORS.chart4} radius={[0, 4, 4, 0]} barSize={24} />
-                   </BarChart>
-                </ResponsiveContainer>
-             </div>
-             </CardContent>
-          </Card>
+        <Card>
+          <CardHeader>
+            <ChartHeader icon={Users} title="Top Responsáveis" />
+          </CardHeader>
+          <CardContent>
+            <div className="h-[400px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={responsibleData} layout="vertical" margin={{ left: 20 }}>
+                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke={chartColors.grid} />
+                  <XAxis type="number" stroke={chartColors.axis} />
+                  <YAxis dataKey="name" type="category" stroke={chartColors.axis} tick={{ fontSize: 11 }} width={100} tickLine={false} axisLine={false} />
+                  <Tooltip cursor={{ fill: chartColors.cursor }} contentStyle={tooltipStyle} />
+                  <Legend wrapperStyle={{ paddingTop: '10px' }} iconType="circle" />
+                  <Bar dataKey="Concluídas" stackId="a" fill={COLORS.success} radius={[0, 0, 0, 0]} barSize={24} />
+                  <Bar dataKey="Em Andamento" stackId="a" fill={COLORS.chart4} radius={[0, 4, 4, 0]} barSize={24} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
 
-          <Card>
-             <CardHeader>
-               <ChartHeader icon={Activity} title="Processos Envolvidos" />
-             </CardHeader>
-             <CardContent>
-             <div className="h-[400px]">
-                <ResponsiveContainer width="100%" height="100%">
-                   <BarChart data={processData} layout="vertical" margin={{left: 20}}>
-                      <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke={chartColors.grid} />
-                      <XAxis type="number" stroke={chartColors.axis} />
-                      <YAxis dataKey="name" type="category" stroke={chartColors.axis} tick={{fontSize: 11}} width={130} tickLine={false} axisLine={false} />
-                      <Tooltip cursor={{fill: chartColors.cursor}} contentStyle={tooltipStyle} />
-                      <Bar dataKey="value" fill="#ff6f00" radius={[0, 4, 4, 0]} barSize={32}>
-                        {processData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={index === 0 ? '#ff6f00' : '#ff9e40'} fillOpacity={1 - (index * 0.1)} />
-                        ))}
-                      </Bar>
-                   </BarChart>
-                </ResponsiveContainer>
-             </div>
-             </CardContent>
-          </Card>
+        <Card>
+          <CardHeader>
+            <ChartHeader icon={Activity} title="Origem das Ocorrências" />
+          </CardHeader>
+          <CardContent>
+            <div className="h-[400px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={processData} layout="vertical" margin={{ left: 20 }}>
+                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke={chartColors.grid} />
+                  <XAxis type="number" stroke={chartColors.axis} />
+                  <YAxis dataKey="name" type="category" stroke={chartColors.axis} tick={{ fontSize: 11 }} width={130} tickLine={false} axisLine={false} />
+                  <Tooltip cursor={{ fill: chartColors.cursor }} contentStyle={tooltipStyle} />
+                  <Bar dataKey="value" fill="#ff6f00" radius={[0, 4, 4, 0]} barSize={32}>
+                    {processData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={index === 0 ? '#ff6f00' : '#ff9e40'} fillOpacity={1 - (index * 0.1)} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
     </div>
