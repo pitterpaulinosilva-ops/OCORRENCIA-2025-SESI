@@ -1,24 +1,12 @@
 import React from 'react';
 import { Calendar, X } from 'lucide-react';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { MultiSelect } from '@/components/ui/multi-select';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-
-interface FilterState {
-  unit: string;
-  severity: string;
-  startDate: string;
-  endDate: string;
-}
+import { FilterState } from '@/types';
 
 interface FilterBarProps {
   units: string[];
@@ -38,24 +26,38 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   isMobile = false,
 }) => {
   const hasActiveFilters =
-    filters.unit !== 'all' ||
-    filters.severity !== 'all' ||
+    filters.units.length > 0 ||
+    filters.severities.length > 0 ||
     filters.startDate ||
     filters.endDate;
 
   const activeFilterCount = [
-    filters.unit !== 'all',
-    filters.severity !== 'all',
+    filters.units.length > 0,
+    filters.severities.length > 0,
     filters.startDate,
     filters.endDate,
   ].filter(Boolean).length;
 
   const handleClearFilters = () => {
     onFilterChange({
-      unit: 'all',
-      severity: 'all',
+      units: [],
+      severities: [],
       startDate: '',
       endDate: '',
+    });
+  };
+
+  const removeUnit = (unit: string) => {
+    onFilterChange({
+      ...filters,
+      units: filters.units.filter(u => u !== unit),
+    });
+  };
+
+  const removeSeverity = (severity: string) => {
+    onFilterChange({
+      ...filters,
+      severities: filters.severities.filter(s => s !== severity),
     });
   };
 
@@ -76,50 +78,32 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           <div className="h-4 w-px bg-border mx-2" />
         </div>
 
-        {/* Unit Filter */}
+        {/* Unit Filter - Multi Select */}
         <div className={cn("flex-1 min-w-[200px]", isMobile && "w-full")}>
           <Label htmlFor="unit-filter" className="text-xs font-medium text-muted-foreground mb-1 block">
             Unidade
           </Label>
-          <Select
-            value={filters.unit}
-            onValueChange={(value) => onFilterChange({ ...filters, unit: value })}
-          >
-            <SelectTrigger id="unit-filter" className="bg-background border-border">
-              <SelectValue placeholder="Todas Unidades" />
-            </SelectTrigger>
-            <SelectContent className="bg-popover">
-              <SelectItem value="all">Todas Unidades</SelectItem>
-              {units.map((unit) => (
-                <SelectItem key={unit} value={unit}>
-                  {unit}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <MultiSelect
+            id="unit-filter"
+            options={units}
+            selected={filters.units}
+            onChange={(selected) => onFilterChange({ ...filters, units: selected })}
+            placeholder="Todas Unidades"
+          />
         </div>
 
-        {/* Severity Filter */}
+        {/* Severity Filter - Multi Select */}
         <div className={cn("flex-1 min-w-[200px]", isMobile && "w-full")}>
           <Label htmlFor="severity-filter" className="text-xs font-medium text-muted-foreground mb-1 block">
             Severidade
           </Label>
-          <Select
-            value={filters.severity}
-            onValueChange={(value) => onFilterChange({ ...filters, severity: value })}
-          >
-            <SelectTrigger id="severity-filter" className="bg-background border-border">
-              <SelectValue placeholder="Todas Classificações" />
-            </SelectTrigger>
-            <SelectContent className="bg-popover">
-              <SelectItem value="all">Todas Classificações</SelectItem>
-              {severities.map((severity) => (
-                <SelectItem key={severity} value={severity}>
-                  {severity}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <MultiSelect
+            id="severity-filter"
+            options={severities}
+            selected={filters.severities}
+            onChange={(selected) => onFilterChange({ ...filters, severities: selected })}
+            placeholder="Todas Classificações"
+          />
         </div>
 
         {/* Start Date */}
@@ -178,28 +162,33 @@ export const FilterBar: React.FC<FilterBarProps> = ({
       {/* Active Filter Badges */}
       {hasActiveFilters && (
         <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-border">
-          {filters.unit !== 'all' && (
-            <Badge variant="secondary" className="gap-1">
-              Unidade: {filters.unit}
+          {/* Unit Badges */}
+          {filters.units.map((unit) => (
+            <Badge key={`unit-${unit}`} variant="secondary" className="gap-1">
+              Unidade: {unit}
               <button
-                onClick={() => onFilterChange({ ...filters, unit: 'all' })}
+                onClick={() => removeUnit(unit)}
                 className="ml-1 hover:bg-muted-foreground/20 rounded-full p-0.5"
               >
                 <X size={12} />
               </button>
             </Badge>
-          )}
-          {filters.severity !== 'all' && (
-            <Badge variant="secondary" className="gap-1">
-              Severidade: {filters.severity}
+          ))}
+
+          {/* Severity Badges */}
+          {filters.severities.map((severity) => (
+            <Badge key={`severity-${severity}`} variant="secondary" className="gap-1">
+              Severidade: {severity}
               <button
-                onClick={() => onFilterChange({ ...filters, severity: 'all' })}
+                onClick={() => removeSeverity(severity)}
                 className="ml-1 hover:bg-muted-foreground/20 rounded-full p-0.5"
               >
                 <X size={12} />
               </button>
             </Badge>
-          )}
+          ))}
+
+          {/* Date Badges */}
           {filters.startDate && (
             <Badge variant="secondary" className="gap-1">
               De: {new Date(filters.startDate).toLocaleDateString('pt-BR')}

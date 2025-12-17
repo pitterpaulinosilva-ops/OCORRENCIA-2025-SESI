@@ -88,3 +88,40 @@
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--muted-foreground) / 0.5);
 }
+
+/* Fix para dropdowns/select com fundo sólido */
+[data-radix-popper-content-wrapper] {
+  z-index: 50 !important;
+}
+
+[data-radix-select-content],
+[data-radix-popper-content-wrapper] > div {
+  background-color: white !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+}
+
+.dark [data-radix-select-content],
+.dark [data-radix-popper-content-wrapper] > div {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+}
+
+/* Itens do select */
+[data-radix-select-viewport] {
+  background-color: inherit !important;
+}
+
+[data-radix-select-item] {
+  background-color: transparent;
+}
+
+[data-radix-select-item]:hover,
+[data-radix-select-item][data-highlighted] {
+  background-color: #f1f5f9 !important;
+}
+
+.dark [data-radix-select-item]:hover,
+.dark [data-radix-select-item][data-highlighted] {
+  background-color: #334155 !important;
+}

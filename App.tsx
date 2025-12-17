@@ -22,14 +22,14 @@ const App: React.FC = () => {
   const [aiError, setAiError] = useState<string | null>(null);
   const { toast } = useToast();
   const { isMobile } = useMobile();
-  
+
   // Initialize theme hook to apply theme on mount
   useTheme();
 
   // Filter States
   const [filters, setFilters] = useState({
-    unit: 'all',
-    severity: 'all',
+    units: [] as string[],
+    severities: [] as string[],
     startDate: '',
     endDate: '',
   });
@@ -44,9 +44,11 @@ const App: React.FC = () => {
   // Filter Logic
   const filteredData = useMemo(() => {
     return data.filter(item => {
-      const matchUnit = filters.unit === 'all' || item.unit === filters.unit;
-      const matchSeverity = filters.severity === 'all' || item.severity === filters.severity;
-      
+      // Se nenhuma unidade selecionada, mostra todas; senão, verifica se está nos selecionados
+      const matchUnit = filters.units.length === 0 || filters.units.includes(item.unit);
+      // Se nenhuma severidade selecionada, mostra todas; senão, verifica se está nos selecionados
+      const matchSeverity = filters.severities.length === 0 || filters.severities.includes(item.severity);
+
       let matchDate = true;
       if (filters.startDate) {
         matchDate = matchDate && new Date(item.date) >= new Date(filters.startDate);
@@ -85,28 +87,28 @@ const App: React.FC = () => {
         const wsname = wb.SheetNames[0];
         const ws = wb.Sheets[wsname];
         const jsonData = XLSX.utils.sheet_to_json(ws) as any[];
-        
+
         const mappedData: Incident[] = jsonData.map((row, idx) => {
           let dateStr = row['Data'] || row['DATA'] || row['date'];
-          
+
           if (dateStr instanceof Date) {
-             dateStr = dateStr.toISOString().split('T')[0];
+            dateStr = dateStr.toISOString().split('T')[0];
           } else if (typeof dateStr === 'string') {
-             if (dateStr.includes('(')) dateStr = dateStr.split('(')[0].trim();
-             
-             if (dateStr.includes('/')) {
-                const parts = dateStr.split('/');
-                if (parts.length === 3) {
-                   dateStr = `${parts[2]}-${parts[1]}-${parts[0]}`;
-                }
-             }
+            if (dateStr.includes('(')) dateStr = dateStr.split('(')[0].trim();
+
+            if (dateStr.includes('/')) {
+              const parts = dateStr.split('/');
+              if (parts.length === 3) {
+                dateStr = `${parts[2]}-${parts[1]}-${parts[0]}`;
+              }
+            }
           } else if (typeof dateStr === 'number') {
-             const dateObj = new Date(Math.round((dateStr - 25569)*86400*1000));
-             dateStr = dateObj.toISOString().split('T')[0];
+            const dateObj = new Date(Math.round((dateStr - 25569) * 86400 * 1000));
+            dateStr = dateObj.toISOString().split('T')[0];
           }
 
           if (!dateStr || dateStr.length < 10) {
-              dateStr = new Date().toISOString().split('T')[0];
+            dateStr = new Date().toISOString().split('T')[0];
           }
 
           return {
@@ -125,13 +127,13 @@ const App: React.FC = () => {
         });
 
         if (mappedData.length === 0) {
-           throw new Error("Nenhum dado válido encontrado.");
+          throw new Error("Nenhum dado válido encontrado.");
         }
 
         mappedData.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
         setData(mappedData);
-        
+
         toast({
           title: "Arquivo importado com sucesso!",
           description: `${mappedData.length} registros foram carregados.`,
@@ -152,10 +154,10 @@ const App: React.FC = () => {
   const handleExport = () => {
     try {
       const headers = ['Código', 'Data', 'Tipo de Ocorrência', 'Notificada', 'Severidade', 'Tipo de Incidente - OMS por Mês', 'Status', 'Responsável', 'Fase', 'Processo'];
-      const csvContent = "data:text/csv;charset=utf-8," 
-        + headers.join(",") + "\n" 
+      const csvContent = "data:text/csv;charset=utf-8,"
+        + headers.join(",") + "\n"
         + filteredData.map(e => `"${e.id}","${e.date}","${e.type}","${e.unit}","${e.severity}","${e.oms}","${e.status || ''}","${e.responsible}","${e.phase}","${e.process}"`).join("\n");
-      
+
       const encodedUri = encodeURI(csvContent);
       const link = document.createElement("a");
       link.setAttribute("href", encodedUri);
@@ -182,11 +184,11 @@ const App: React.FC = () => {
     setAnalyzing(true);
     setAiAnalysis(null);
     setAiError(null);
-    
+
     try {
       const result = await analyzeIncidents(filteredData);
       setAiAnalysis(result);
-      
+
       toast({
         title: "Análise concluída!",
         description: "A análise de IA foi gerada com sucesso.",
@@ -195,7 +197,7 @@ const App: React.FC = () => {
     } catch (error) {
       const errorMessage = "Não foi possível gerar a análise. Tente novamente.";
       setAiError(errorMessage);
-      
+
       toast({
         title: "Erro na análise",
         description: errorMessage,
@@ -280,7 +282,7 @@ const App: React.FC = () => {
           )}
         </div>
       </MainLayout>
-      
+
       <Toaster />
     </>
   );

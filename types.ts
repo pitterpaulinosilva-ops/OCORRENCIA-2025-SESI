@@ -22,8 +22,8 @@ export interface DashboardMetrics {
 export interface FilterState {
   startDate: string;
   endDate: string;
-  unit: string | 'all';
-  severity: string | 'all';
+  units: string[]; // Array para múltipla seleção
+  severities: string[]; // Array para múltipla seleção
 }
 
 export interface ChartDataPoint {
